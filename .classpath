@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/Krisztian/Dropbox/j.games/Votifier.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/Krisztian/Dropbox/j.games/Vault.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Krisztian/Dropbox/j.games/craftbukkit-1.1-R1-SNAPSHOT.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
