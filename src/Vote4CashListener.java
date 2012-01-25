@@ -16,6 +16,8 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -87,8 +89,14 @@ public class Vote4CashListener implements VoteListener, Listener {
 
 			// Hook to vault & get economy
 			if (v.getServer().getPluginManager().getPlugin("Vault") != null) {
-				RegisteredServiceProvider<Economy> economyProvider = v.getServer().getServicesManager().getRegistration(Economy.class);
+				try {
+				RegisteredServiceProvider<Economy> economyProvider = v.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
 				econ = economyProvider.getProvider();
+				}
+				catch(Exception e) {
+					log.severe("[Vote4Cash] Error hooking to Vault! Vote4Cash Listener will not work!");
+					log.severe("[Vote4Cash] Error is: "+e.getMessage()+" from "+e.getCause()+".");
+				}
 			} else {
 				log.severe("[Vote4Cash] Could not find Vault! Vote4Cash Listener will not work!");
 			}
@@ -161,6 +169,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 		return returnS;
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		if (pending.isEmpty()) {
 			return;
