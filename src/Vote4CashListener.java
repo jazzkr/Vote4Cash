@@ -130,6 +130,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 				String playerName = players[i].getName();
 				if (player.equalsIgnoreCase(playerName)) {
 					pay(players[i]);
+					return;
 				}
 			}
 
@@ -137,6 +138,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 			for (int i = 0; i < pending.size(); i++) {
 				if (pending.get(i).equals(player)) {
 					log.info("[Vote4Cash] " + player + " is not on the server but is already on the waiting list to receive money, will not submit again.");
+					return;
 				}
 			}
 
