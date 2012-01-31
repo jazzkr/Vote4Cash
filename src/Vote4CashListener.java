@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -63,7 +64,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 			if (!propertiesFile.exists()) {
 				pro.setProperty("reward", "50");
 				pro.setProperty("player-voted-msg", "[Vote4Cash] Thank you for voting %PLAYER%! To show our appreciation here is %REWARD% %CURRENCY%!");
-				pro.setProperty("broadcast-msg", "[Vote4Cash] %PLAYER% has voted and received %REWARD% %CURRENCY%. Thank you %PLAYER%!");
+				pro.setProperty("broadcast-msg", "[Server] [Vote4Cash] %PLAYER% has voted and received %REWARD% %CURRENCY%. Thank you %PLAYER%!");
 				pro.setProperty("currency-name-singular", "dollar");
 				pro.setProperty("currency-name-plural", "dollars");
 				pro.setProperty("broadcast", "true");
@@ -149,26 +150,89 @@ public class Vote4CashListener implements VoteListener, Listener {
 		}
 	}
 
-	public String formatOutput(String mess, String p) {
-		String[] split = mess.split("%");
-		String returnS = "";
+	//Put in custom variables
+	public String formatOutput(String txt, String player) {
+		String[] split = txt.split("%");
+		String returnString = "";
+
 		for (int i = 0; i < split.length; i++) {
-			if (split[i].equals("PLAYER")) {
-				split[i] = p;
+			if (split[i].equalsIgnoreCase("PLAYER")) {
+				split[i] = player;
 			}
-			if (split[i].equals("REWARD")) {
+			if (split[i].equalsIgnoreCase("REWARD")) {
 				split[i] = Double.toString(reward);
 			}
-			if (split[i].equals("CURRENCY")) {
+			if (split[i].equalsIgnoreCase("CURRENCY")) {
 				if (reward > 1) {
 					split[i] = currencyP;
 				} else {
 					split[i] = currencyS;
 				}
 			}
-			returnS = returnS + split[i];
+			returnString = returnString + split[i];
 		}
-		return returnS;
+		return parseColors(returnString);
+	}
+	
+	//Put in coloured text
+	public String parseColors(String txt) {
+		String[] split = txt.split("&");
+		String returnString = "";
+
+		for (int i = 0; i < split.length; i++) {
+			if (split[i].startsWith("AQUA")) {
+				returnString = returnString + (ChatColor.AQUA + (split[i].substring(4)));
+			}
+			else if (split[i].startsWith("BLACK")) {
+				returnString = returnString + (ChatColor.BLACK + (split[i].substring(5)));
+			}
+			else if (split[i].startsWith("BLUE")) {
+				returnString = returnString + (ChatColor.BLUE + (split[i].substring(4)));
+			}
+			else if (split[i].startsWith("DARK_AQUA")) {
+				returnString = returnString + (ChatColor.DARK_AQUA + (split[i].substring(9)));
+			}
+			else if (split[i].startsWith("DARK_BLUE")) {
+				returnString = returnString + (ChatColor.DARK_BLUE + (split[i].substring(9)));
+			}
+			else if (split[i].startsWith("DARK_GRAY")) {
+				returnString = returnString + (ChatColor.DARK_GRAY + (split[i].substring(9)));
+			}
+			else if (split[i].startsWith("DARK_GREEN")) {
+				returnString = returnString + (ChatColor.DARK_GREEN + (split[i].substring(10)));
+			}
+			else if (split[i].startsWith("DARK_PURPLE")) {
+				returnString = returnString + (ChatColor.DARK_PURPLE + (split[i].substring(11)));
+			}
+			else if (split[i].startsWith("DARK_RED")) {
+				returnString = returnString + (ChatColor.DARK_RED + (split[i].substring(8)));
+			}
+			else if (split[i].startsWith("GOLD")) {
+				returnString = returnString + (ChatColor.GOLD + (split[i].substring(4)));
+			}
+			else if (split[i].startsWith("GRAY")) {
+				returnString = returnString + (ChatColor.GRAY + (split[i].substring(4)));
+			}
+			else if (split[i].startsWith("GREEN")) {
+				returnString = returnString + (ChatColor.GREEN + (split[i].substring(5)));
+			}
+			else if (split[i].startsWith("LIGHT_PURPLE")) {
+				returnString = returnString + (ChatColor.LIGHT_PURPLE + (split[i].substring(12)));
+			}
+			else if (split[i].startsWith("RED")) {
+				returnString = returnString + (ChatColor.RED + (split[i].substring(3)));
+			}
+			else if (split[i].startsWith("WHITE")) {
+				returnString = returnString + (ChatColor.WHITE + (split[i].substring(5)));
+			}
+			else if (split[i].startsWith("YELLOW")) {
+				returnString = returnString + (ChatColor.YELLOW + (split[i].substring(6)));
+			}
+			else {
+				returnString = returnString + split[i];
+			}
+		}
+		return returnString;
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -176,29 +240,38 @@ public class Vote4CashListener implements VoteListener, Listener {
 		if (pending.isEmpty()) {
 			return;
 		}
-
-		for (int i = 0; i < pending.size(); i++) {
-			String player = e.getPlayer().getName();
-			if (player.equals(pending.get(i))) {
+		String player = e.getPlayer().getName();
+		for (int i = 0; i < pending.size(); i++) {			
+			if (player.equalsIgnoreCase(pending.get(i))) {
 				log.info("[Vote4Cash] Found " + player + " in pending list. Paying now!");
 				pay(e.getPlayer());
 				pending.remove(i);
 				save(pending);
+				return;
 			}
 		}
 	}
 
 	public void pay(Player player) {
+		//Transaction through vault
 		EconomyResponse r = econ.depositPlayer(player.getName(), reward);
+		
 		if (r.transactionSuccess()) {
+			//Message to player
 			player.sendMessage(formatOutput(msg, player.getName()));
+			//Message to console
 			log.info("[Vote4Cash] " + player.getName() + " has just received " + reward + " " + (reward > 1 ? currencyP : currencyS) + " for voting.");
+			//Message to server (if enabled)
 			if (broadcast) {
 				v.getServer().broadcastMessage(formatOutput(broadcastMsg, player.getName()));
 			}
+			return;
 		} else {
-			player.sendMessage("Error giving money:" + r.errorMessage);
+			//Message to player
+			player.sendMessage(ChatColor.RED + "[Vote4Cash] Error giving money:" + r.errorMessage);
+			//Message to console
 			log.info("[Vote4Cash] " + player.getName() + " could not be given money for voting. Here is the error: " + r.errorMessage);
+			return;
 		}
 	}
 
