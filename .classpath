@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/Krisztian/Dropbox/CodeEx/Libraries/Votifier.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Krisztian/Dropbox/CodeEx/Libraries/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Krisztian/Dropbox/CodeEx/Libraries/bukkit-1.1-R1-20120119.234317-45.jar"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>
