@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,6 +42,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 	
 	private static double reward;
 	private static int nagInterval;
+	private static int nagJoinDelay;
 	private static String msg;
 	private static String broadcastMsg;
 	private static String nagMsg;
@@ -158,6 +160,8 @@ public class Vote4CashListener implements VoteListener, Listener {
 			bw.newLine();
 			bw.write("nag-interval-hours=24");
 			bw.newLine();
+			bw.write("nag-delay-on-login-seconds=5");
+			bw.newLine();
 			bw.write("nag-msg=[Vote4Cash] Hello %PLAYER%! This is just a reminder that your last vote was %HOURS% hours ago and you are now eligible to vote again.");
 			bw.newLine();
 			bw.write("never-voted-nag-msg=[Vote4Cash] Hello %Player%! Did you know you can get extra cash by voting for this server?");
@@ -184,6 +188,7 @@ public class Vote4CashListener implements VoteListener, Listener {
 			broadcast = Boolean.parseBoolean(pro.getProperty("broadcast"));
 			votenag = Boolean.parseBoolean(pro.getProperty("nag-players"));
 			nagInterval = Integer.parseInt(pro.getProperty("nag-interval-hours"));
+			nagJoinDelay = Integer.parseInt(pro.getProperty("nag-delay-on-login-seconds"));
 			nagMsg = pro.getProperty("nag-msg");
 			virginNagMsg = pro.getProperty("never-voted-nag-msg");
 			collectHist = Boolean.parseBoolean(pro.getProperty("collect-history"));
@@ -293,8 +298,8 @@ public class Vote4CashListener implements VoteListener, Listener {
 		return returnString;
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onPlayerJoin(PlayerJoinEvent e) {
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onPlayerJoin(final PlayerJoinEvent e) {
 		//Load from file on each join
 		pending = loadPending();
 		loadProperties();
@@ -317,11 +322,15 @@ public class Vote4CashListener implements VoteListener, Listener {
 				}
 				Date now = new GregorianCalendar().getTime();
 				//Get difference in hours
-				long diff = ((((now.getTime() - then.getTime())/1000)/60)/60);
+				final long diff = ((((now.getTime() - then.getTime())/1000)/60)/60);
 				//If enough time has gone by, nag player
 				if (diff >= nagInterval) {
-					log.info("[Vote4Cash] Nagging player "+player+", hasn't voted in "+diff+" hours.");
-					e.getPlayer().sendMessage(formatOutput(nagMsg, player, 0, 0, diff));
+					Bukkit.getScheduler().scheduleSyncDelayedTask(v, new Runnable() {
+						public void run() {
+							log.info("[Vote4Cash] Nagging player "+e.getPlayer().getName()+", hasn't voted in "+diff+" hours.");
+							e.getPlayer().sendMessage(formatOutput(nagMsg, e.getPlayer().getName(), 0, 0, diff));
+						}
+					}, (nagJoinDelay*20));
 				}
 			//If player has never voted before
 			} else {
@@ -410,7 +419,6 @@ public class Vote4CashListener implements VoteListener, Listener {
 			String text;
 			while ((text = br.readLine()) != null) {
 				pending.add(text);
-				System.out.println(text);
 			}
 			br.close();
 		} catch (Exception e) {
