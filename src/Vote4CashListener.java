@@ -18,11 +18,13 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Logger;
+
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -122,13 +124,15 @@ public class Vote4CashListener implements VoteListener, Listener {
 			}
 		}
 
-		// Check if they are on server for instant payment, otherwise put on waiting list if not already on it
-		Player[] players = v.getServer().getOnlinePlayers();
-		for (int i = 0; i < players.length; i++) {
-			String playerName = players[i].getName();
-			if (player.equalsIgnoreCase(playerName)) {
-				pay(players[i], 1);
-				return;
+		// Check if they are on server for instant payment, otherwise put on waiting list if not already on it		
+		for (World world : Bukkit.getWorlds()) {
+			for(Player p : world.getPlayers())
+			{
+				String playerName = p.getName();
+				if (player.equalsIgnoreCase(playerName)) {
+					pay(p, 1);
+					return;
+				}
 			}
 		}
 
